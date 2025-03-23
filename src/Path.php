@@ -4,36 +4,52 @@ declare(strict_types=1);
 
 namespace Uneaowu\Path;
 
-final class Path
+final readonly class Path
 {
+    public const SEP = DIRECTORY_SEPARATOR;
+
     private function __construct(
         private array $parts,
-        private string $sep,
     ) {
     }
 
     public static function make(string $path, string ...$paths): self
     {
-        $sep = DIRECTORY_SEPARATOR;
-
         $paths = [$path, ...array_values($paths)];
 
         $parts = [];
 
         foreach ($paths as $p) {
-            $parts = array_merge($parts, self::resolveParts($p, $sep));
+            $parts = [...$parts, ...self::resolveParts($p)];
         }
 
-        return new self(parts: $parts, sep: $sep);
+        return new self(parts: $parts);
     }
 
-    private static function resolveParts(string $path, string $sep): array
+    public function append(string $path): self
     {
-        $parts = explode($sep, $path);
+        return new self([...$this->parts, ...self::resolveParts($path)]);
+    }
+
+    public function prepend(string $path): self
+    {
+        // simply ignore the prepend operation, when the path is absolute
+        if ($this->isAbsolute()) {
+            return clone $this;
+        }
+
+        $parts = [...self::resolveParts($path), ...$this->parts];
+
+        return new self($parts);
+    }
+
+    private static function resolveParts(string $path): array
+    {
+        $parts = explode(self::SEP, $path);
 
         $parts = LazyIter::make($parts)
-            ->map(static function (string $s) use ($sep): string {
-                return trim($s, $sep);
+            ->map(static function (string $s): string {
+                return trim($s, self::SEP);
             })
             ->filter(static function (string $s): bool {
                 return '' !== $s;
@@ -41,23 +57,38 @@ final class Path
             ->values()
             ->all();
 
-        if (str_starts_with($path, $sep)) {
+        if (str_starts_with($path, self::SEP)) {
             if (! empty($parts)) {
-                $parts[0] = $sep.$parts[0];
+                $parts[0] = self::SEP.$parts[0];
             } else {
-                $parts = [$sep];
+                $parts = [self::SEP];
             }
         }
 
         return $parts;
     }
 
+    public function isAbsolute(): bool
+    {
+        return str_starts_with($this->parts[0], self::SEP);
+    }
+
+    public function isRelative(): bool
+    {
+        return ! $this->isAbsolute();
+    }
+
     public function __toString(): string
     {
-        if ($this->parts[0] === $this->sep) {
-            return $this->parts[0].join($this->sep, array_slice($this->parts, 1));
+        if (self::SEP === $this->parts[0]) {
+            return $this->parts[0].join(self::SEP, array_slice($this->parts, 1));
         }
 
-        return join($this->sep, $this->parts);
+        return join(self::SEP, $this->parts);
+    }
+
+    public function asParts(): array
+    {
+        return $this->parts;
     }
 }
