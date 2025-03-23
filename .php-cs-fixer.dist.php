@@ -11,6 +11,9 @@ return (new Config())
         '@Symfony' => true,
         'declare_strict_types' => true,
         'not_operator_with_successor_space' => true,
+        'php_unit_method_casing' => [
+            'case' => 'snake_case',
+        ],
         'phpdoc_to_comment' => [
             'ignored_tags' => [
                 'var',
