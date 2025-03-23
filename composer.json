@@ -1,0 +1,22 @@
+{
+    "name": "uneaowu/path",
+    "description": "A library for working with filesystem paths",
+    "type": "library",
+    "require-dev": {
+        "symfony/var-dumper": "^7.2",
+        "phpstan/phpstan": "^2.1",
+        "friendsofphp/php-cs-fixer": "^3.72",
+        "phpunit/phpunit": "^11.5"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Uneaowu\\Path\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    }
+}
